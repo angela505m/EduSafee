@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>EduSafe - Configuración</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <span class="logo-shield">
+          <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+            <rect x="2" y="2" width="36" height="36" rx="8" fill="#2C3E50"/>
+            <text x="20" y="27" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#fff" text-anchor="middle">E</text>
+          </svg>
+        </span>
+        <span class="sidebar-titulo">EduSafe</span>
+      </div>
+      <nav>
+        <button class="nav-item" data-section="inicio"><span class="nav-icono">🏠</span>Inicio</button>
+        <button class="nav-item" data-section="sitios"><span class="nav-icono">🚫</span>Sitios bloqueados</button>
+        <button class="nav-item" data-section="palabras"><span class="nav-icono">#</span>Palabras clave</button>
+        <button class="nav-item" data-section="notificaciones"><span class="nav-icono">🔔</span>Notificaciones</button>
+        <button class="nav-item" data-section="mensajes"><span class="nav-icono">📘</span>Mensajes educativos</button>
+        <button class="nav-item" data-section="general"><span class="nav-icono">⚙️</span>Configuración general</button>
+      </nav>
+    </aside>
+
+    <main class="contenido">
+
+      <section id="sec-inicio" class="seccion">
+        <div class="seccion-header">
+          <h1>Inicio</h1>
+          <span class="badge-activo">● Protección activa</span>
+        </div>
+        <p class="descripcion">Resumen de la actividad de protección de hoy.</p>
+        <div class="tarjeta stat-grande">
+          <span class="stat-numero" id="statHoy">0</span>
+          <span class="stat-etiqueta">páginas bloqueadas hoy</span>
+        </div>
+        <div class="tarjeta">
+          <h2>Historial reciente</h2>
+          <ul id="listaHistorial" class="item-list"></ul>
+        </div>
+      </section>
+
+      <section id="sec-sitios" class="seccion" hidden>
+        <h1>Sitios bloqueados</h1>
+        <p class="descripcion">Administra la lista de sitios web que serán bloqueados.</p>
+        <div class="tarjeta">
+          <h2>Agregar nuevo sitio</h2>
+          <div class="input-row">
+            <input type="text" id="inputDominio" placeholder="Ejemplo: facebook.com">
+            <button class="btn-primario" id="btnAgregarDominio">Agregar</button>
+          </div>
+        </div>
+        <div class="tarjeta caja-ia">
+          <div class="ia-icono">✨</div>
+          <div class="ia-texto">
+            <strong>Asistencia con IA</strong>
+            <p>Obtén sugerencias de sitios relacionados para una protección más completa (sin necesidad de configuración adicional).</p>
+            <div class="input-row">
+              <input type="text" id="inputSugerenciaSitio" placeholder="Sitio para analizar (ej: apuestas)">
+              <button class="btn-primario" id="btnSugerirSitio">Obtener sugerencias</button>
+            </div>
+            <ul id="listaSugerenciasSitio" class="item-list"></ul>
+          </div>
+        </div>
+        <div class="tarjeta">
+          <h2>Lista de sitios bloqueados</h2>
+          <ul id="listaDominios" class="item-list"></ul>
+        </div>
+      </section>
+
+      <section id="sec-palabras" class="seccion" hidden>
+        <h1>Palabras clave</h1>
+        <p class="descripcion">Administra las palabras clave que serán bloqueadas.</p>
+        <div class="tarjeta">
+          <h2>Agregar nueva palabra clave</h2>
+          <div class="input-row">
+            <input type="text" id="inputPalabra" placeholder="Ejemplo: violencia">
+            <button class="btn-primario" id="btnAgregarPalabra">Agregar</button>
+          </div>
+        </div>
+        <div class="tarjeta caja-ia">
+          <div class="ia-icono">✨</div>
+          <div class="ia-texto">
+            <strong>Asistencia con IA</strong>
+            <p>Obtén sugerencias de palabras clave relacionadas (sin necesidad de configuración adicional).</p>
+            <div class="input-row">
+              <input type="text" id="inputSugerenciaPalabra" placeholder="Palabra para analizar (ej: apuestas)">
+              <button class="btn-primario" id="btnSugerirPalabra">Obtener sugerencias</button>
+            </div>
+            <ul id="listaSugerenciasPalabra" class="item-list"></ul>
+          </div>
+        </div>
+        <div class="tarjeta">
+          <h2>Lista de palabras clave</h2>
+          <ul id="listaPalabras" class="item-list"></ul>
+        </div>
+      </section>
+
+      <section id="sec-notificaciones" class="seccion" hidden>
+        <h1>Notificaciones</h1>
+        <p class="descripcion">Configura cómo EduSafe te avisa ante un bloqueo.</p>
+        <div class="tarjeta">
+          <label class="switch-row-grande">
+            <span class="switch">
+              <input type="checkbox" id="chkNotificacionesSec">
+              <span class="slider"></span>
+            </span>
+            Mostrar notificaciones explicativas al bloquear un sitio
+          </label>
+        </div>
+      </section>
+
+      <section id="sec-mensajes" class="seccion" hidden>
+        <h1>Mensajes educativos</h1>
+        <p class="descripcion">Banco de consejos que se muestran en el popup y al bloquear un sitio.</p>
+        <div class="tarjeta">
+          <h2>Agregar mensaje propio</h2>
+          <div class="input-row">
+            <input type="text" id="inputMensaje" placeholder="Escribe un consejo digital...">
+            <button class="btn-primario" id="btnAgregarMensaje">Agregar</button>
+          </div>
+        </div>
+        <div class="tarjeta">
+          <h2>Mensajes activos</h2>
+          <ul id="listaMensajes" class="item-list"></ul>
+        </div>
+      </section>
+
+      <section id="sec-general" class="seccion" hidden>
+        <h1>Configuración general</h1>
+        <p class="descripcion">Copia de seguridad, privacidad y estado del asistente.</p>
+        <div class="tarjeta">
+          <h2>Asistente inteligente</h2>
+          <p class="ayuda">Las sugerencias de IA están disponibles sin necesidad de configuración. La extensión se comunica con un servidor seguro que gestiona la API de Gemini.</p>
+          <div style="background: var(--color-bg-mint); padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; color: var(--color-text-muted);">
+            <span id="estadoServidor">● Verificando conexión...</span>
+          </div>
+        </div>
+        <div class="tarjeta">
+          <h2>Copia de seguridad</h2>
+          <div class="input-row">
+            <button class="btn-secundario" id="btnExportar">Exportar configuración</button>
+            <button class="btn-secundario" id="btnImportar">Importar configuración</button>
+            <input type="file" id="inputImportar" accept="application/json" hidden>
+          </div>
+        </div>
+        <p class="footer-nota" style="margin-top: 30px; font-style: italic; color: var(--color-text-faint);">
+          “La mejor protección es la educación digital”
+        </p>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>EduSafe</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="popup-header">
+    <span class="logo-shield">
+      <svg width="36" height="36" viewBox="0 0 40 40" fill="none">
+        <rect x="2" y="2" width="36" height="36" rx="8" fill="#2C3E50"/>
+        <text x="20" y="27" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#fff" text-anchor="middle">E</text>
+      </svg>
+    </span>
+    <div class="header-text">
+      <span class="titulo">EduSafe</span>
+      <span class="subtitulo">Protección familiar</span>
+    </div>
+  </header>
+
+  <section class="stat-row">
+    <span>Páginas bloqueadas hoy:</span>
+    <strong id="bloqueosHoy">0</strong>
+  </section>
+
+  <section class="consejo">
+    <div class="consejo-icono">💡</div>
+    <div>
+      <p class="consejo-titulo">Consejo digital del día</p>
+      <p id="mensajeDelDia">Cargando...</p>
+    </div>
+  </section>
+
+  <div class="botonera">
+    <button id="btnConfig" class="btn-secundario">Abrir configuración</button>
+    <button id="btnHistorial" class="btn-primario">Ver historial</button>
+  </div>
+
+  <footer class="popup-footer">
+    <label class="switch-row">
+      <span class="switch">
+        <input type="checkbox" id="chkNotificaciones">
+        <span class="slider"></span>
+      </span>
+      Notificaciones
+    </label>
+    <button id="btnAjustes" class="btn-icono" title="Configuración general">⚙️</button>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
