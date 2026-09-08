@@ -11,7 +11,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -46,10 +46,12 @@ app.use(express.json());
 // ── Gemini client ────────────────────────────────────────────────────────────
 function getGeminiClient() {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("GEMINI_API_KEY no configurada en el servidor.");
-  return new GoogleGenerativeAI(apiKey);
-}
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY no configurada en el servidor.");
+  }
 
+  return new GoogleGenAI({ apiKey });
+}
 // ── Prompt ────────────────────────────────────────────────────────────────────
 function buildPrompt(term) {
   return `
@@ -70,6 +72,13 @@ responde con un array vacío: []
 }
 
 // ── Endpoints ─────────────────────────────────────────────────────────────────
+app.get("/", (_req, res) => {
+  res.json({
+    status: "ok",
+    service: "EduSafe API",
+    message: "Servidor funcionando correctamente"
+  });
+});
 
 // Health check — la extensión lo usa para mostrar el estado de conexión
 app.get("/health", (_req, res) => {
@@ -90,9 +99,13 @@ app.post("/api/suggest", async (req, res) => {
 
   try {
     const genAI = getGeminiClient();
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const result = await model.generateContent(buildPrompt(term.trim()));
-    const raw = result.response.text().trim();
+
+const result = await genAI.models.generateContent({
+  model: "gemini-2.5-flash",
+  contents: buildPrompt(term.trim()),
+});
+
+const raw = result.text.trim();
 
     // Intentar parsear el JSON que devuelve Gemini
     let suggestions;
