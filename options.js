@@ -229,35 +229,41 @@ function importarConfiguracion(file) {
 // ---------- Asistencia inteligente (vía servidor proxy) ----------
 
 // URL del servidor que despliegues (cambiar por la tuya)
-const SERVIDOR_URL = "https://edusafee.onrender.com/";
+const SERVIDOR_URL = "https://edusafee.onrender.com";
 
 async function consultarGemini(termino) {
   try {
-    const resp = await fetch(SERVIDOR_URL, {
+    const resp = await fetch(`${SERVIDOR_URL}/api/suggest`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ term: termino })
     });
+
     if (!resp.ok) {
       const err = await resp.json();
       return { ok: false, error: err.error || "Error en el servidor" };
     }
+
     const data = await resp.json();
     return { ok: true, sugerencias: data.suggestions || [] };
+
   } catch (e) {
-    return { ok: false, error: "No se pudo conectar con el servidor de sugerencias. Verifica tu conexión." };
+    return {
+      ok: false,
+      error: "No se pudo conectar con el servidor de sugerencias. Verifica tu conexión."
+    };
   }
 }
 
-// Verificar estado del servidor (opcional)
 async function verificarServidor() {
   const estado = document.getElementById("estadoServidor");
   if (!estado) return;
+
   try {
-    // Usamos la ruta /health en lugar de /api/suggest con HEAD
-    const resp = await fetch(SERVIDOR_URL.replace('/api/suggest', '/health'), {
+    const resp = await fetch(`${SERVIDOR_URL}/health`, {
       method: "GET"
     });
+
     if (resp.ok) {
       estado.innerHTML = "● Conectado al servidor";
       estado.style.color = "#27AE60";
