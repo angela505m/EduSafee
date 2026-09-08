@@ -8,7 +8,7 @@
  * Deploy gratuito en Render.com (plan Free, Web Service, Node).
  * La API key de Gemini se configura como variable de entorno GEMINI_API_KEY.
  */
-
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -90,7 +90,7 @@ app.post("/api/suggest", async (req, res) => {
 
   try {
     const genAI = getGeminiClient();
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent(buildPrompt(term.trim()));
     const raw = result.response.text().trim();
 
