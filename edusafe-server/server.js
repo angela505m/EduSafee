@@ -87,6 +87,9 @@ function getBrevoApiKey() {
   return process.env.BREVO_API_KEY || null;
 }
 
+function emailValido(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 function getBrevoSender() {
   const email =
     process.env.BREVO_SENDER_EMAIL ||
