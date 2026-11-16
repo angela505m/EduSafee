@@ -90,6 +90,9 @@ function getBrevoApiKey() {
 function emailValido(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
+function normalizarEmail(email) {
+  return String(email || "").trim().toLowerCase();
+}
 function getBrevoSender() {
   const email =
     process.env.BREVO_SENDER_EMAIL ||
@@ -293,6 +296,7 @@ app.get("/api/correo/estado", async (_req, res) => {
     });
   }
 });
+
 
 // ======================================================
 // ENVIAR CÓDIGO DE VERIFICACIÓN
