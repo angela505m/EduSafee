@@ -15,7 +15,6 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { GoogleGenAI } from "@google/genai";
-import nodemailer from "nodemailer";
 import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 
 const app = express();
@@ -78,61 +77,36 @@ responde con un array vacío: []
 // CONFIGURACIÓN SMTP - GMAIL
 // ======================================================
 
-const smtpPort = Number(process.env.SMTP_PORT || 587);
-const smtpSecure =
-  process.env.SMTP_SECURE === "true" || smtpPort === 465;
+// ======================================================
+// CONFIGURACIÓN BREVO - API HTTPS
+// ======================================================
 
-let transporter = null;
+const BREVO_API_URL = "https://api.brevo.com/v3";
 
-function getMailTransport() {
-  const { SMTP_HOST, SMTP_USER, SMTP_PASS } = process.env;
+function getBrevoApiKey() {
+  return process.env.BREVO_API_KEY || null;
+}
 
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+function getBrevoSender() {
+  const email =
+    process.env.BREVO_SENDER_EMAIL ||
+    process.env.SMTP_USER;
+
+  const name =
+    process.env.BREVO_SENDER_NAME ||
+    "EduSafe";
+
+  if (!email || !emailValido(email)) {
     return null;
   }
 
-  if (!Number.isInteger(smtpPort)) {
-    return null;
-  }
-
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: smtpPort,
-      secure: smtpSecure,
-      auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASS,
-      },
-      connectionTimeout: 15000,
-      greetingTimeout: 15000,
-      socketTimeout: 20000,
-    });
-  }
-
-  return transporter;
+  return { name, email: email.trim() };
 }
 
-function remitente() {
-  return process.env.SMTP_FROM || process.env.SMTP_USER || "EduSafe";
-}
-
-function emailValido(value) {
-  return (
-    typeof value === "string" &&
-    value.length <= 254 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim())
-  );
-}
-
-function normalizarEmail(value) {
-  return value.trim().toLowerCase();
-}
-
-function respuestaSmtpNoConfigurado(res) {
+function respuestaBrevoNoConfigurado(res) {
   return res.status(503).json({
-    codigo: "smtp",
-    error: "Falta configurar el servicio SMTP en Render.",
+    codigo: "brevo",
+    error: "Falta configurar el servicio de correo Brevo en Render.",
   });
 }
 
@@ -147,23 +121,55 @@ function escapeHtml(value) {
 }
 
 async function enviarCorreo({ to, subject, text, html }) {
-  const mailer = getMailTransport();
+  const apiKey = getBrevoApiKey();
+  const sender = getBrevoSender();
 
-  if (!mailer) {
-    const error = new Error("SMTP no configurado");
-    error.code = "SMTP_NOT_CONFIGURED";
+  if (!apiKey || !sender) {
+    const error = new Error("Brevo no está configurado.");
+    error.code = "BREVO_NOT_CONFIGURED";
     throw error;
   }
 
-  return mailer.sendMail({
-    from: remitente(),
-    to,
-    subject,
-    text,
-    html,
+  const response = await fetch(`${BREVO_API_URL}/smtp/email`, {
+    method: "POST",
+    headers: {
+      "accept": "application/json",
+      "api-key": apiKey,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      sender,
+      to: [{ email: to }],
+      replyTo: { email: sender.email, name: sender.name },
+      subject,
+      textContent: text,
+      htmlContent: html,
+    }),
   });
-}
 
+  const responseText = await response.text();
+
+  let result = {};
+
+  try {
+    result = responseText ? JSON.parse(responseText) : {};
+  } catch {
+    result = { message: responseText };
+  }
+
+  if (!response.ok) {
+    const error = new Error(
+      result.message ||
+      result.code ||
+      `Brevo respondió con estado HTTP ${response.status}.`
+    );
+
+    error.code = `BREVO_HTTP_${response.status}`;
+    throw error;
+  }
+
+  return result;
+}
 // ======================================================
 // CÓDIGOS OTP
 // ======================================================
@@ -232,34 +238,55 @@ const MOTIVOS_OTP = {
 // ======================================================
 
 app.get("/api/correo/estado", async (_req, res) => {
-  const mailer = getMailTransport();
+  const apiKey = getBrevoApiKey();
+  const sender = getBrevoSender();
 
-  if (!mailer) {
+  if (!apiKey || !sender) {
     return res.json({
       ok: true,
       modulo: true,
-      smtp: false,
+      brevo: false,
     });
   }
 
   try {
-    await mailer.verify();
+    const response = await fetch(`${BREVO_API_URL}/account`, {
+      method: "GET",
+      headers: {
+        "accept": "application/json",
+        "api-key": apiKey,
+      },
+    });
+
+    if (!response.ok) {
+      console.error(
+        "Comprobación Brevo fallida:",
+        response.status
+      );
+
+      return res.json({
+        ok: true,
+        modulo: true,
+        brevo: false,
+      });
+    }
 
     return res.json({
       ok: true,
       modulo: true,
-      smtp: true,
+      brevo: true,
     });
+
   } catch (err) {
     console.error(
-      "Comprobación SMTP fallida:",
-      err.code || err.message
+      "Error comprobando Brevo:",
+      err.message
     );
 
     return res.json({
       ok: true,
       modulo: true,
-      smtp: false,
+      brevo: false,
     });
   }
 });
@@ -287,9 +314,9 @@ app.post("/api/otp/send", async (req, res) => {
     });
   }
 
-  if (!getMailTransport()) {
-    return respuestaSmtpNoConfigurado(res);
-  }
+  if (!getBrevoApiKey() || !getBrevoSender()) {
+  return respuestaBrevoNoConfigurado(res);
+}
 
   const email = normalizarEmail(emailInput);
   const ip = req.ip || req.socket.remoteAddress || "desconocida";
@@ -374,7 +401,7 @@ Si no solicitaste este código, ignorá este mensaje.
     );
 
     return res.status(502).json({
-      error: "No se pudo enviar el correo. Revisá la configuración SMTP en Render.",
+     error: "No se pudo enviar el correo. Revisá la configuración de Brevo en Render.",
     });
   }
 });
@@ -492,9 +519,9 @@ app.post("/api/notify", async (req, res) => {
     });
   }
 
-  if (!getMailTransport()) {
-    return respuestaSmtpNoConfigurado(res);
-  }
+  if (!getBrevoApiKey() || !getBrevoSender()) {
+  return respuestaBrevoNoConfigurado(res);
+}
 
   const email = normalizarEmail(emailInput);
 
@@ -641,9 +668,9 @@ app.post("/api/resumen", async (req, res) => {
     });
   }
 
-  if (!getMailTransport()) {
-    return respuestaSmtpNoConfigurado(res);
-  }
+  if (!getBrevoApiKey() || !getBrevoSender()) {
+  return respuestaBrevoNoConfigurado(res);
+}
 
   const email = normalizarEmail(emailInput);
 
@@ -851,7 +878,7 @@ app.listen(PORT, () => {
     console.warn("GEMINI_API_KEY no está configurada.");
   }
 
-  if (!getMailTransport()) {
-    console.warn("SMTP no está configurado.");
-  }
+  if (!getBrevoApiKey() || !getBrevoSender()) {
+  console.warn("Brevo no está configurado.");
+}
 });
